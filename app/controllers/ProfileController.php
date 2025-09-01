@@ -1,24 +1,29 @@
 <?php
+require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
-class ProfileController {
-    private function checkAuth() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        if (!isset($_SESSION['user_id'])) {
-            header("Location: 172.20.10.3/CambaNet/public/?action=login");
-            exit();
-        }
-    }
+class ProfileController extends BaseController {
     public function showProfile() {
         $this->checkAuth();
         $usuarioModel = new UsuarioModel();
         $user = $usuarioModel->getUserById($_SESSION['user_id']);
-        require_once __DIR__ . '/../../config/database.php';
+        
+        $sessionModel = new SessionModel();
+        $sesiones = $sessionModel->getSesionesUsuario($_SESSION['user_id']);
+        $sesiones_parseadas = [];
+        foreach ($sesiones as $sesion) {
+            $sesion['user_agent_parsed'] = $this->parseUserAgent($sesion['user_agent']);
+            $sesiones_parseadas[] = $sesion;
+        }
+        
+        $max_sesiones = $sessionModel->getMaxSesionesPermitidas($_SESSION['user_id']);
+        
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
+        
         $sql = "SELECT * FROM tipos_suscripcion ORDER BY precio ASC";
         $result = $conexion->query($sql);
         $suscripciones = $result->fetch_all(MYSQLI_ASSOC);
+        
         $sql_suscripcion_actual = "SELECT ts.* 
                                 FROM usuarios u
                                 INNER JOIN tipos_suscripcion ts ON u.suscripcion_id = ts.id
@@ -27,44 +32,54 @@ class ProfileController {
         $stmt->bind_param("i", $_SESSION['user_id']);
         $stmt->execute();
         $suscripcion_actual = $stmt->get_result()->fetch_assoc();
+        
         $data = [
             'user' => $user,
+            'sesiones' => $sesiones_parseadas,
+            'max_sesiones' => $max_sesiones,
             'suscripciones' => $suscripciones,
             'suscripcion_actual' => $suscripcion_actual,
             'user_nombre' => $_SESSION['user_nombre'],
             'user_email' => $_SESSION['user_email']
         ];
-        require __DIR__ . '/../views/profile/index.php';
+        
+        $this->renderView('profile/index.php', $data);
     }
     public function comprarSuscripcion() {
         $this->checkAuth();
         
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header("Location: 172.20.10.3/CambaNet/public/?action=profile");
-            exit();
+            redirect('profile');
         }
+        
         $suscripcion_id = $_POST['suscripcion_id'] ?? null;
         if (!$suscripcion_id) {
             $_SESSION['error'] = "ID de suscripción no válido";
-            header("Location: 172.20.10.3/CambaNet/public/?action=profile");
-            exit();
+            redirect('profile');
         }
-        require_once __DIR__ . '/../../config/database.php';
+        
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
+        
         $sql_verificar = "SELECT * FROM tipos_suscripcion WHERE id = ?";
         $stmt = $conexion->prepare($sql_verificar);
         $stmt->bind_param("i", $suscripcion_id);
         $stmt->execute();
         $suscripcion = $stmt->get_result()->fetch_assoc();
+        
         if (!$suscripcion) {
             $_SESSION['error'] = "Suscripción no encontrada";
-            header("Location: 172.20.10.3/CambaNet/public/?action=profile");
-            exit();
+            redirect('profile');
         }
+        
         $sql_actualizar = "UPDATE usuarios SET suscripcion_id = ? WHERE id = ?";
         $stmt = $conexion->prepare($sql_actualizar);
         $stmt->bind_param("ii", $suscripcion_id, $_SESSION['user_id']);
+        
         if ($stmt->execute()) {
+            $sessionModel = new SessionModel();
+            $sessionModel->cerrarOtrasSesiones($_SESSION['user_id'], session_id());
+            
             $fecha_expiracion = date('Y-m-d H:i:s', strtotime('+30 days'));
             $sql_registrar = "INSERT INTO suscripciones_compradas 
                             (usuario_id, tipo_suscripcion_id, fecha_expiracion, activa) 
@@ -75,18 +90,18 @@ class ProfileController {
             
             $_SESSION['success'] = "¡Suscripción actualizada exitosamente! Ahora tienes el plan " . 
                                 htmlspecialchars($suscripcion['nombre']) . " con " . 
-                                $suscripcion['max_sesiones'] . " sesiones concurrentes";
+                                $suscripcion['max_sesiones'] . " sesiones concurrentes. " .
+                                "Todas las demás sesiones han sido cerradas automáticamente.";
         } else {
             $_SESSION['error'] = "Error al actualizar la suscripción";
         }
-        header("Location: 172.20.10.3/CambaNet/public/?action=profile");
-        exit();
+        
+        redirect('profile');
     }
     public function updateProfile() {
         $this->checkAuth();
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header("Location: 172.20.10.3/CambaNet/public/?action=profile");
-            exit();
+            redirect('profile');
         }
         $usuarioModel = new UsuarioModel();
         $errors = [];
@@ -106,7 +121,7 @@ class ProfileController {
                 'user_nombre' => $_SESSION['user_nombre'],
                 'user_email' => $_SESSION['user_email']
             ];
-            require __DIR__ . '/../views/profile/index.php';
+            $this->renderView('profile/index.php', $data);
             return;
         }
         $success = $usuarioModel->updateUser($_SESSION['user_id'], [
@@ -120,14 +135,12 @@ class ProfileController {
         } else {
             $_SESSION['error'] = "Error al actualizar el perfil";
         }
-        header("Location: 172.20.10.3/CambaNet/public/?action=profile");
-        exit();
+        redirect('profile');
     }
     public function toggle2FA() {
         $this->checkAuth();
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header("Location: 172.20.10.3/CambaNet/public/?action=profile");
-            exit();
+            redirect('profile');
         }
         $usuarioModel = new UsuarioModel();
         $user = $usuarioModel->getUserById($_SESSION['user_id']);
@@ -144,8 +157,45 @@ class ProfileController {
         } else {
             $_SESSION['error'] = $mensaje;
         }
-        header("Location: 172.20.10.3/CambaNet/public/?action=profile");
-        exit();
+        redirect('profile');
+    }
+    public function cerrarSesion() {
+        $this->checkAuth();
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $session_id = $input['session_id'] ?? '';
+            
+            if ($session_id) {
+                $sessionModel = new SessionModel();
+                if ($sessionModel->cerrarSesion($session_id)) {
+                    $this->jsonResponse(['success' => true, 'message' => 'Sesión cerrada exitosamente']);
+                } else {
+                    $this->jsonResponse(['success' => false, 'message' => 'Error al cerrar la sesión']);
+                }
+            } else {
+                $this->jsonResponse(['success' => false, 'message' => 'ID de sesión no válido']);
+            }
+        } else {
+            $this->jsonResponse(['success' => false, 'message' => 'Método no permitido']);
+        }
+    }
+    private function parseUserAgent($user_agent) {
+        if (strpos($user_agent, 'iPhone') !== false) {
+            return 'iPhone';
+        } elseif (strpos($user_agent, 'iPad') !== false) {
+            return 'iPad';
+        } elseif (strpos($user_agent, 'Android') !== false) {
+            return 'Android';
+        } elseif (strpos($user_agent, 'Windows') !== false) {
+            return 'Windows';
+        } elseif (strpos($user_agent, 'Mac') !== false) {
+            return 'Mac';
+        } elseif (strpos($user_agent, 'Linux') !== false) {
+            return 'Linux';
+        } else {
+            return substr($user_agent, 0, 30) . '...';
+        }
     }
 }
 ?>

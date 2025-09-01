@@ -139,8 +139,47 @@ CREATE TABLE sesiones_activas (
     INDEX idx_sesiones_usuario (usuario_id, activa),
     INDEX idx_sesiones_activas (activa, fecha_ultima_actividad)
 );
-
-
+CREATE TABLE actividades (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    curso_id INT NOT NULL,
+    profesor_id INT NOT NULL,
+    titulo VARCHAR(255) NOT NULL,
+    descripcion TEXT,
+    tipo ENUM('tarea', 'examen', 'proyecto', 'participacion') NOT NULL,
+    puntaje_maximo DECIMAL(5,2) NOT NULL,
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    fecha_limite DATETIME,
+    activo TINYINT(1) DEFAULT 1,
+    FOREIGN KEY (curso_id) REFERENCES cursos(id),
+    FOREIGN KEY (profesor_id) REFERENCES usuarios(id)
+);
+CREATE TABLE calificaciones (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    estudiante_id INT NOT NULL,
+    actividad_id INT NOT NULL,
+    curso_id INT NOT NULL,
+    puntaje_obtenido DECIMAL(5,2) NOT NULL,
+    comentario TEXT,
+    fecha_calificacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (estudiante_id) REFERENCES usuarios(id),
+    FOREIGN KEY (actividad_id) REFERENCES actividades(id),
+    FOREIGN KEY (curso_id) REFERENCES cursos(id),
+    UNIQUE KEY unique_calificacion (estudiante_id, actividad_id)
+);
+CREATE TABLE progreso_estudiante (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    estudiante_id INT NOT NULL,
+    curso_id INT NOT NULL,
+    material_id INT,
+    completado TINYINT(1) DEFAULT 0,
+    fecha_completado DATETIME,
+    progreso_percent INT DEFAULT 0,
+    FOREIGN KEY (estudiante_id) REFERENCES usuarios(id),
+    FOREIGN KEY (curso_id) REFERENCES cursos(id),
+    FOREIGN KEY (material_id) REFERENCES material_didactico(id),
+    UNIQUE KEY unique_progreso (estudiante_id, curso_id, material_id)
+);
 INSERT INTO usuarios (nombre, email, password, rol_id, verificado) 
 VALUES ('Josue Claros Roca','clarosrocajosue@gmail.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',1,1);
 INSERT INTO usuarios (nombre, email, password, rol_id, verificado) 
@@ -200,3 +239,4 @@ DO
     SET utilizado = 1, expirado = 1 
     WHERE expiracion <= NOW() 
     AND utilizado = 0;
+

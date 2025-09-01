@@ -3,46 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recuperar Contraseña - Plataforma Educativa</title>
+    <title>Recuperar Contraseña - <?php echo SITE_NAME; ?></title>
+    <link rel="stylesheet" href="<?php echo asset('css/styles.css'); ?>">
 </head>
 <body>
-    <div class="recovery-container">
-        <div class="recovery-left">
-            <h2>Recupera tu avance</h2>
-            <p>Te ayudamos aproteger tu cuenta</p>
-            <div class="security-features">
-                <div class="feature">
-                    <div class="feature-icon"></div>
-                    <div>Enlaces de recuperación por correo</div>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon"></div>
-                    <div>Protección de datos personales</div>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon"></div>
-                    <div>Soporte técnico disponible proximamente xd</div>
-                </div>
-            </div>
-        </div>
-        <div class="recovery-right">
-            <div class="recovery-header">
+    <div class="auth-container">
+        <div class="auth-right">
+            <div class="auth-header">
                 <h1>Recuperar Contraseña</h1>
-                <p>Ingresa tu email para recibir el link</p>
+                <p>Ingresa tu email para recibir el enlace de recuperación</p>
             </div>
-            <form action="172.20.10.3/CambaNet/public/?action=forgot-password" method="POST">
+            
+            <form action="<?php echo url('forgot-password'); ?>" method="POST">
                 <div class="form-group">
-                    <label for="email">Correo electrónico</label>
-                    <input type="email" id="email" name="email" placeholder="Ingresa tu correo electrónico registrado" required>
+                    <label for="email" class="form-label">Correo electrónico</label>
+                    <input type="email" id="email" name="email" 
+                           placeholder="correo@ejemplo.com" 
+                           class="form-control" required>
                 </div>
-                <button type="submit" class="btn-recovery">Enviar Enlace de Recuperación</button>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Enviar Enlace de Recuperación
+                </button>
             </form>
-            <div class="instructions">
-                <p>Te enviaremos un enlace seguro a tu correo electrónico para que puedas restablecer tu contraseña.</p>
+
+            <div style="background: var(--gray-light); padding: 15px; border-radius: var(--border-radius); margin: 20px 0;">
+                <p style="font-size: 12px; color: var(--text-light); margin: 0;">
+                    Te enviaremos un enlace seguro a tu correo electrónico para restablecer tu contraseña.
+                </p>
             </div>
-            <div class="divider"></div>
-            <div class="recovery-links">
-                <a href="172.20.10.3/CambaNet/public/?action=login">← Volver al Inicio de Sesión</a>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                <div style="text-align: center;">
+                    <a href="<?php echo url('login'); ?>" style="display: block; margin: 10px 0; color: var(--text-light); text-decoration: none;">
+                        Volver al inicio de sesión
+                    </a>
+                </div>
             </div>
         </div>
     </div>

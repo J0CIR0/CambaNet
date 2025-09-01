@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../config/database.php';
 class SessionModel {
     private $db;
     public function __construct() {
@@ -26,16 +26,16 @@ class SessionModel {
         return $row['total'];
     }
     public function getMaxSesionesPermitidas($user_id) {
-            $sql = "SELECT ts.max_sesiones 
-                    FROM usuarios u 
-                    INNER JOIN tipos_suscripcion ts ON u.suscripcion_id = ts.id 
-                    WHERE u.id = ?";        
-            $stmt = $this->db->prepare($sql);
-            $stmt->bind_param("i", $user_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $row = $result->fetch_assoc();
-            return $row['max_sesiones'] ?? 1;
+        $sql = "SELECT ts.max_sesiones 
+                FROM usuarios u 
+                INNER JOIN tipos_suscripcion ts ON u.suscripcion_id = ts.id 
+                WHERE u.id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        return $row['max_sesiones'] ?? 1;
     }
     public function cerrarOtrasSesiones($user_id, $current_session_id) {
         $sql = "UPDATE sesiones_activas SET activa = 0 

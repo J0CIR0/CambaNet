@@ -1,20 +1,13 @@
 <?php
+require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/CursoModel.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
 require_once __DIR__ . '/../models/MaterialModel.php';
-class ProfesorController {
-    private function checkProfesorAuth() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 2) {
-            header("Location: 172.20.10.3/CambaNet/public/?action=login");
-            exit();
-        }
-    }
+require_once __DIR__ . '/../models/CalificacionModel.php';
+class ProfesorController extends BaseController {
     public function dashboard() {
         $this->checkProfesorAuth();
-        require_once __DIR__ . '/../../config/database.php';
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
         $sqlCursos = "SELECT * FROM cursos WHERE profesor_id = ? ORDER BY fecha_creacion DESC";
         $stmtCursos = $conexion->prepare($sqlCursos);
@@ -38,12 +31,11 @@ class ProfesorController {
             'user_nombre' => $_SESSION['user_nombre'],
             'user_email' => $_SESSION['user_email']
         ];
-        extract($data);
-        require __DIR__ . '/../views/profesor/dashboard.php';
+        $this->renderView('profesor/dashboard.php', $data);
     }
     public function misCursos() {
         $this->checkProfesorAuth();
-        require_once __DIR__ . '/../../config/database.php';
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
         $sqlCursos = "SELECT c.*, 
                     (SELECT COUNT(*) FROM inscripciones WHERE curso_id = c.id) as total_estudiantes
@@ -59,8 +51,7 @@ class ProfesorController {
             'user_nombre' => $_SESSION['user_nombre'],
             'user_email' => $_SESSION['user_email']
         ];
-        extract($data);
-        require __DIR__ . '/../views/profesor/mis-cursos.php';
+        $this->renderView('profesor/mis-cursos.php', $data);
     }
     public function calificaciones() {
         $this->checkProfesorAuth();
@@ -68,12 +59,11 @@ class ProfesorController {
             'user_nombre' => $_SESSION['user_nombre'],
             'user_email' => $_SESSION['user_email']
         ];
-        extract($data);
-        require __DIR__ . '/../views/profesor/calificaciones.php';
+        $this->renderView('profesor/calificaciones.php', $data);
     }
     public function editarCurso($id) {
         $this->checkProfesorAuth();
-        require_once __DIR__ . '/../../config/database.php';
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
         $sql = "SELECT * FROM cursos WHERE id = ? AND profesor_id = ?";
         $stmt = $conexion->prepare($sql);
@@ -82,8 +72,7 @@ class ProfesorController {
         $curso = $stmt->get_result()->fetch_assoc();
         if (!$curso) {
             $_SESSION['error'] = "Curso no encontrado o no tienes permisos";
-            header("Location: 172.20.10.3/CambaNet/public/?action=profesor/mis-cursos");
-            exit();
+            redirect('profesor/mis-cursos');
         }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nombre = $_POST['nombre'] ?? '';
@@ -94,8 +83,7 @@ class ProfesorController {
             $stmtUpdate->bind_param("ssiii", $nombre, $descripcion, $activo, $id, $_SESSION['user_id']);
             if ($stmtUpdate->execute()) {
                 $_SESSION['success'] = "Curso actualizado correctamente";
-                header("Location: 172.20.10.3/CambaNet/public/?action=profesor/mis-cursos");
-                exit();
+                redirect('profesor/mis-cursos');
             } else {
                 $_SESSION['error'] = "Error al actualizar el curso";
             }
@@ -105,11 +93,12 @@ class ProfesorController {
             'user_nombre' => $_SESSION['user_nombre'],
             'user_email' => $_SESSION['user_email']
         ];
-        require __DIR__ . '/../views/profesor/editar-curso.php';
+        
+        $this->renderView('profesor/editar-curso.php', $data);
     }
     public function verEstudiantes($id) {
         $this->checkProfesorAuth();
-        require_once __DIR__ . '/../../config/database.php';
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
         $sqlCurso = "SELECT * FROM cursos WHERE id = ? AND profesor_id = ?";
         $stmtCurso = $conexion->prepare($sqlCurso);
@@ -118,8 +107,7 @@ class ProfesorController {
         $curso = $stmtCurso->get_result()->fetch_assoc();
         if (!$curso) {
             $_SESSION['error'] = "Curso no encontrado o no tienes permisos";
-            header("Location: 172.20.10.3/CambaNet/public/?action=profesor/mis-cursos");
-            exit();
+            redirect('profesor/mis-cursos');
         }
         $sqlEstudiantes = "SELECT u.*, i.fecha_inscripcion, i.estado 
                           FROM inscripciones i 
@@ -136,11 +124,11 @@ class ProfesorController {
             'user_nombre' => $_SESSION['user_nombre'],
             'user_email' => $_SESSION['user_email']
         ];
-        require __DIR__ . '/../views/profesor/estudiantes-curso.php';
+        $this->renderView('profesor/estudiantes-curso.php', $data);
     }
     public function verEstudiantesGeneral() {
         $this->checkProfesorAuth();
-        require_once __DIR__ . '/../../config/database.php';
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
         $sql = "SELECT u.*, r.nombre as rol_nombre 
                 FROM usuarios u 
@@ -154,11 +142,11 @@ class ProfesorController {
             'user_nombre' => $_SESSION['user_nombre'],
             'user_email' => $_SESSION['user_email']
         ];
-        require __DIR__ . '/../views/profesor/estudiantes-general.php';
+        $this->renderView('profesor/estudiantes-general.php', $data);
     }
     public function material() {
         $this->checkProfesorAuth();
-        require_once __DIR__ . '/../../config/database.php';
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
         $sqlCursos = "SELECT * FROM cursos WHERE profesor_id = ? ORDER BY nombre";
         $stmtCursos = $conexion->prepare($sqlCursos);
@@ -183,15 +171,14 @@ class ProfesorController {
             'user_nombre' => $_SESSION['user_nombre'],
             'user_email' => $_SESSION['user_email']
         ];
-        require __DIR__ . '/../views/profesor/material.php';
+        $this->renderView('profesor/material.php', $data);
     }
     public function subirMaterial() {
         $this->checkProfesorAuth();
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header("Location: 172.20.10.3/CambaNet/public/?action=profesor/material");
-            exit();
+            redirect('profesor/material');
         }
-        require_once __DIR__ . '/../../config/database.php';
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
         $sqlVerificar = "SELECT * FROM cursos WHERE id = ? AND profesor_id = ?";
         $stmtVerificar = $conexion->prepare($sqlVerificar);
@@ -200,8 +187,7 @@ class ProfesorController {
         $curso = $stmtVerificar->get_result()->fetch_assoc();
         if (!$curso) {
             $_SESSION['error'] = "Curso no válido";
-            header("Location: 172.20.10.3/CambaNet/public/?action=profesor/material");
-            exit();
+            redirect('profesor/material');
         }
         if (isset($_FILES['archivo']) && $_FILES['archivo']['error'] === UPLOAD_ERR_OK) {
             $archivo = $_FILES['archivo'];
@@ -209,8 +195,7 @@ class ProfesorController {
             $extensionesPermitidas = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'gif', 'mp4', 'txt'];
             if (!in_array($extension, $extensionesPermitidas)) {
                 $_SESSION['error'] = "Tipo de archivo no permitido";
-                header("Location: 172.20.10.3/CambaNet/public/?action=profesor/material");
-                exit();
+                redirect('profesor/material');
             }
             $uploadDir = __DIR__ . '/../../uploads/material/';
             if (!is_dir($uploadDir)) {
@@ -245,8 +230,7 @@ class ProfesorController {
             $_SESSION['error'] = "Debe seleccionar un archivo válido";
         }
         $curso_id = $_POST['curso_id'] ?? '';
-        header("Location: 172.20.10.3/CambaNet/public/?action=profesor/material&curso_id=" . $curso_id);
-        exit();
+        redirect('profesor/material&curso_id=' . $curso_id);
     }
     private function getTipoArchivo($extension) {
         $tipos = [
@@ -267,8 +251,155 @@ class ProfesorController {
             $_SESSION['error'] = "Error al eliminar el material o no tienes permisos";
         }
         $curso_id = $_GET['curso_id'] ?? '';
-        header("Location: 172.20.10.3/CambaNet/public/?action=profesor/material&curso_id=" . $curso_id);
-        exit();
+        redirect('profesor/material&curso_id=' . $curso_id);
+    }
+
+    public function gestionarCalificaciones($curso_id = null) {
+        $this->checkProfesorAuth();
+        $calificacionModel = new CalificacionModel();
+        $cursoModel = new CursoModel();
+        $cursos = $cursoModel->getCursosByProfesor($_SESSION['user_id']);
+        if (!$curso_id && !empty($cursos)) {
+            $curso_id = $cursos[0]['id'];
+        }
+        $actividades = [];
+        $estadisticas = [];
+        $curso_seleccionado = null;
+        if ($curso_id) {
+            $actividades = $calificacionModel->getActividadesPorCurso($curso_id, $_SESSION['user_id']);
+            $estadisticas = $calificacionModel->getEstadisticasCurso($curso_id);
+            $curso_seleccionado = $cursoModel->getCursoById($curso_id);
+        }
+        $data = [
+            'cursos' => $cursos,
+            'actividades' => $actividades,
+            'estadisticas' => $estadisticas,
+            'curso_seleccionado' => $curso_seleccionado,
+            'curso_id' => $curso_id,
+            'user_nombre' => $_SESSION['user_nombre'],
+            'user_email' => $_SESSION['user_email']
+        ];
+        $this->renderView('profesor/calificaciones.php', $data);
+    }
+    public function crearActividad() {
+        $this->checkProfesorAuth();
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $calificacionModel = new CalificacionModel();
+            
+            $data = [
+                'curso_id' => $_POST['curso_id'],
+                'profesor_id' => $_SESSION['user_id'],
+                'titulo' => $_POST['titulo'],
+                'descripcion' => $_POST['descripcion'],
+                'tipo' => $_POST['tipo'],
+                'puntaje_maximo' => $_POST['puntaje_maximo'],
+                'fecha_limite' => $_POST['fecha_limite']
+            ];
+            
+            if ($calificacionModel->crearActividad($data)) {
+                $_SESSION['success'] = "Actividad creada exitosamente";
+            } else {
+                $_SESSION['error'] = "Error al crear la actividad";
+            }
+            
+            redirect('profesor/calificaciones&curso_id=' . $_POST['curso_id']);
+        }
+    }
+    public function calificarActividad($actividad_id) {
+        $this->checkProfesorAuth();
+        $calificacionModel = new CalificacionModel();
+        $actividad = $calificacionModel->getActividadById($actividad_id, $_SESSION['user_id']);
+        if (!$actividad) {
+            $_SESSION['error'] = "Actividad no encontrada";
+            redirect('profesor/calificaciones');
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            foreach ($_POST['calificaciones'] as $estudiante_id => $calificacion) {
+                $data = [
+                    'estudiante_id' => $estudiante_id,
+                    'actividad_id' => $actividad_id,
+                    'curso_id' => $actividad['curso_id'],
+                    'puntaje_obtenido' => $calificacion['puntaje'],
+                    'comentario' => $calificacion['comentario'] ?? ''
+                ];
+                
+                $calificacionModel->registrarCalificacion($data);
+            }
+            $_SESSION['success'] = "Calificaciones guardadas exitosamente";
+            redirect('profesor/calificaciones&curso_id=' . $actividad['curso_id']);
+        }
+        global $conexion;
+        $sql = "SELECT u.id, u.nombre, u.email, c.puntaje_obtenido, c.comentario
+                FROM inscripciones i
+                INNER JOIN usuarios u ON i.estudiante_id = u.id
+                LEFT JOIN calificaciones c ON u.id = c.estudiante_id AND c.actividad_id = ?
+                WHERE i.curso_id = ? AND i.estado = 'activo'
+                ORDER BY u.nombre";
+        $stmt = $conexion->prepare($sql);
+        $stmt->bind_param("ii", $actividad_id, $actividad['curso_id']);
+        $stmt->execute();
+        $estudiantes = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $data = [
+            'actividad' => $actividad,
+            'estudiantes' => $estudiantes,
+            'user_nombre' => $_SESSION['user_nombre'],
+            'user_email' => $_SESSION['user_email']
+        ];
+        
+        $this->renderView('profesor/calificar-actividad.php', $data);
+    }
+    public function eliminarActividad($id) {
+        $this->checkProfesorAuth();
+        $calificacionModel = new CalificacionModel();
+        $actividad = $calificacionModel->getActividadById($id, $_SESSION['user_id']);
+        
+        if ($calificacionModel->eliminarActividad($id, $_SESSION['user_id'])) {
+            $_SESSION['success'] = "Actividad eliminada exitosamente";
+        } else {
+            $_SESSION['error'] = "Error al eliminar la actividad";
+        }
+        
+        redirect('profesor/calificaciones&curso_id=' . $actividad['curso_id']);
+    }
+
+    public function editarActividad($id) {
+        $this->checkProfesorAuth();
+        $calificacionModel = new CalificacionModel();
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $data = [
+                'titulo' => $_POST['titulo'],
+                'descripcion' => $_POST['descripcion'],
+                'tipo' => $_POST['tipo'],
+                'puntaje_maximo' => $_POST['puntaje_maximo'],
+                'fecha_limite' => $_POST['fecha_limite'],
+                'activo' => isset($_POST['activo'])
+            ];
+            
+            if ($calificacionModel->editarActividad($id, $_SESSION['user_id'], $data)) {
+                $_SESSION['success'] = "Actividad actualizada exitosamente";
+            } else {
+                $_SESSION['error'] = "Error al actualizar la actividad";
+            }
+            
+            $actividad = $calificacionModel->getActividadById($id, $_SESSION['user_id']);
+            redirect('profesor/calificaciones&curso_id=' . $actividad['curso_id']);
+        }
+        $actividad = $calificacionModel->getActividadById($id, $_SESSION['user_id']);
+        
+        if (!$actividad) {
+            $_SESSION['error'] = "Actividad no encontrada";
+            redirect('profesor/calificaciones');
+        }
+        
+        $data = [
+            'actividad' => $actividad,
+            'user_nombre' => $_SESSION['user_nombre'],
+            'user_email' => $_SESSION['user_email']
+        ];
+        
+        $this->renderView('profesor/editar-actividad.php', $data);
     }
 }
 ?>

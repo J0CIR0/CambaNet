@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # CambaNet - Panel de Gestión Educativa
 
 CambaNet es un **panel de gestión para instituciones educativas**, desarrollado en PHP, HTML, CSS y JavaScript. Está diseñado para administrar cursos, estudiantes, material didáctico y calificaciones, con un diseño **minimalista**, moderno y totalmente responsivo.
@@ -133,3 +134,6 @@ Estudiante de Ingeniería de Sistemas, Bolivia.
 
 📄 Licencia
 MIT License – puedes usar, modificar y distribuir libremente, manteniendo la atribución al autor.
+=======
+# CambaNet
+>>>>>>> f18a6fd7d4aa1116c7c0460a2f6df0ce4de37958

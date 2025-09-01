@@ -1,21 +1,13 @@
 <?php
+require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/CursoModel.php';
-class CursoController {
-    private function checkAdminAuth() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 1) {
-            header("Location: 172.20.10.3/CambaNet/public/?action=login");
-            exit();
-        }
-    }
+class CursoController extends BaseController {
     public function index() {
         $this->checkAdminAuth();
         $cursoModel = new CursoModel();
         $cursos = $cursoModel->getAllCursos();
         $profesores = $cursoModel->getProfesores();
-        require __DIR__ . '/../views/admin/cursos.php';
+        $this->renderView('admin/cursos.php', compact('cursos', 'profesores'));
     }
     public function crearCurso() {
         $this->checkAdminAuth();
@@ -23,8 +15,7 @@ class CursoController {
             $cursoModel = new CursoModel();
             if (empty($_POST['nombre']) || empty($_POST['profesor_id'])) {
                 $_SESSION['error'] = "Nombre y profesor son requeridos";
-                header("Location: 172.20.10.3/CambaNet/public/?action=admin/cursos");
-                exit();
+                redirect('admin/cursos');
             }
             $success = $cursoModel->createCurso($_POST);
             if ($success) {
@@ -32,8 +23,7 @@ class CursoController {
             } else {
                 $_SESSION['error'] = "Error al crear el curso";
             }
-            header("Location: 172.20.10.3/CambaNet/public/?action=admin/cursos");
-            exit();
+            redirect('admin/cursos');
         }
     }
     public function editarCurso($id) {
@@ -43,28 +33,25 @@ class CursoController {
             $curso = $cursoModel->getCursoById($id);
             if (!$curso) {
                 $_SESSION['error'] = "Curso no encontrado";
-                header("Location: 172.20.10.3/CambaNet/public/?action=admin/cursos");
-                exit();
+                redirect('admin/cursos');
             }
             $profesores = $cursoModel->getProfesores();
-            require __DIR__ . '/../views/admin/editar-curso.php';
+            $this->renderView('admin/editar-curso.php', compact('curso', 'profesores'));
             exit();
         }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($_POST['nombre']) || empty($_POST['profesor_id'])) {
                 $_SESSION['error'] = "Nombre y profesor son requeridos";
-                header("Location: 172.20.10.3/CambaNet/public/?action=admin/editar-curso&id=" . $id);
-                exit();
+                redirect('admin/editar-curso&id=' . $id);
             }
             $success = $cursoModel->updateCurso($id, $_POST);
             if ($success) {
                 $_SESSION['success'] = "Curso actualizado exitosamente";
-                header("Location: 172.20.10.3/CambaNet/public/?action=admin/cursos");
+                redirect('admin/cursos');
             } else {
                 $_SESSION['error'] = "Error al actualizar el curso";
-                header("Location: 172.20.10.3/CambaNet/public/?action=admin/editar-curso&id=" . $id);
+                redirect('admin/editar-curso&id=' . $id);
             }
-            exit();
         }
     }
     public function eliminarCurso($id) {
@@ -76,8 +63,7 @@ class CursoController {
         } else {
             $_SESSION['error'] = "Error al eliminar el curso. Puede que tenga estudiantes inscritos.";
         }
-        header("Location: 172.20.10.3/CambaNet/public/?action=admin/cursos");
-        exit();
+        redirect('admin/cursos');
     }
 }
 ?>

@@ -15,5 +15,20 @@ class Validator {
         }
         return true;
     }
+    public static function validateEmail($email) {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return "El formato del email no es válido";
+        }
+        return true;
+    }
+    public static function validateName($name) {
+        if (strlen(trim($name)) < 2) {
+            return "El nombre debe tener al menos 2 caracteres";
+        }
+        if (!preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/', $name)) {
+            return "El nombre solo puede contener letras y espacios";
+        }
+        return true;
+    }
 }
 ?>

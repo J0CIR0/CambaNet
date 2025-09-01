@@ -1,26 +1,12 @@
 <?php
+require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/CursoModel.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
 require_once __DIR__ . '/../models/MaterialModel.php';
-class EstudianteController {
-    private function checkEstudianteAuth() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 3) {
-            header("Location: 172.20.10.3/CambaNet/public/?action=login");
-            exit();
-        }
-        if (!isset($_SESSION['user_nombre'])) {
-            $_SESSION['user_nombre'] = 'Estudiante';
-        }
-        if (!isset($_SESSION['user_email'])) {
-            $_SESSION['user_email'] = '';
-        }
-    }
+class EstudianteController extends BaseController {
     public function dashboard() {
         $this->checkEstudianteAuth();
-        require_once __DIR__ . '/../../config/database.php';
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
         $sqlInscritos = "SELECT c.*, i.fecha_inscripcion, i.estado 
                         FROM inscripciones i 
@@ -49,12 +35,11 @@ class EstudianteController {
             'user_nombre' => $_SESSION['user_nombre'],
             'user_email' => $_SESSION['user_email']
         ];
-        extract($data);
-        require __DIR__ . '/../views/estudiante/dashboard.php';
+        $this->renderView('estudiante/dashboard.php', $data);
     }
     public function misCursos() {
         $this->checkEstudianteAuth();
-        require_once __DIR__ . '/../../config/database.php';
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
         $sql = "SELECT c.*, i.fecha_inscripcion, i.estado, u.nombre as profesor_nombre,
                        (SELECT COUNT(*) FROM material_didactico WHERE curso_id = c.id) as total_material
@@ -73,12 +58,11 @@ class EstudianteController {
             'user_nombre' => $_SESSION['user_nombre'],
             'user_email' => $_SESSION['user_email']
         ];
-        extract($data);
-        require __DIR__ . '/../views/estudiante/mis-cursos.php';
+        $this->renderView('estudiante/mis-cursos.php', $data);
     }
     public function inscribirCurso($id) {
         $this->checkEstudianteAuth();
-        require_once __DIR__ . '/../../config/database.php';
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
         $sqlCurso = "SELECT * FROM cursos WHERE id = ? AND activo = 1";
         $stmtCurso = $conexion->prepare($sqlCurso);
@@ -87,8 +71,7 @@ class EstudianteController {
         $curso = $stmtCurso->get_result()->fetch_assoc();
         if (!$curso) {
             $_SESSION['error'] = "Curso no disponible";
-            header("Location: 172.20.10.3/CambaNet/public/?action=estudiante/dashboard");
-            exit();
+            redirect('estudiante/dashboard');
         }
         $sqlCheck = "SELECT * FROM inscripciones WHERE estudiante_id = ? AND curso_id = ?";
         $stmtCheck = $conexion->prepare($sqlCheck);
@@ -96,8 +79,7 @@ class EstudianteController {
         $stmtCheck->execute();
         if ($stmtCheck->get_result()->num_rows > 0) {
             $_SESSION['error'] = "Ya estás inscrito en este curso";
-            header("Location: 172.20.10.3/CambaNet/public/?action=estudiante/dashboard");
-            exit();
+            redirect('estudiante/dashboard');
         }
         $sqlInscribir = "INSERT INTO inscripciones (estudiante_id, curso_id, estado) VALUES (?, ?, 'activo')";
         $stmtInscribir = $conexion->prepare($sqlInscribir);
@@ -107,12 +89,11 @@ class EstudianteController {
         } else {
             $_SESSION['error'] = "Error al inscribirse en el curso";
         }
-        header("Location: 172.20.10.3/CambaNet/public/?action=estudiante/dashboard");
-        exit();
+        redirect('estudiante/dashboard');
     }
     public function cancelarInscripcion($id) {
         $this->checkEstudianteAuth();
-        require_once __DIR__ . '/../../config/database.php';
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
         $sql = "DELETE FROM inscripciones WHERE estudiante_id = ? AND curso_id = ?";
         $stmt = $conexion->prepare($sql);
@@ -122,12 +103,11 @@ class EstudianteController {
         } else {
             $_SESSION['error'] = "Error al cancelar la inscripción";
         }
-        header("Location: 172.20.10.3/CambaNet/public/?action=estudiante/dashboard");
-        exit();
+        redirect('estudiante/dashboard');
     }
     public function verCurso($id) {
         $this->checkEstudianteAuth();
-        require_once __DIR__ . '/../../config/database.php';
+        require_once __DIR__ . '/../config/database.php';
         global $conexion;
         $sql = "SELECT c.*, i.estado, i.fecha_inscripcion 
                 FROM inscripciones i 
@@ -140,8 +120,7 @@ class EstudianteController {
         $curso = $result->fetch_assoc();
         if (!$curso) {
             $_SESSION['error'] = "No tienes acceso a este curso o no estás inscrito";
-            header("Location: 172.20.10.3/CambaNet/public/?action=estudiante/dashboard");
-            exit();
+            redirect('estudiante/dashboard');
         }
         $materialModel = new MaterialModel();
         $material = $materialModel->getMaterialByCurso($id);
@@ -157,8 +136,7 @@ class EstudianteController {
             'user_nombre' => $_SESSION['user_nombre'],
             'user_email' => $_SESSION['user_email']
         ];
-        extract($data);
-        require __DIR__ . '/../views/estudiante/ver-curso.php';
+        $this->renderView('estudiante/ver-curso.php', $data);
     }
 }
 ?>

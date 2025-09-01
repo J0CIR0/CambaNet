@@ -3,83 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - Plataforma Educativa</title>
+    <title>Registro - <?php echo SITE_NAME; ?></title>
+    <link rel="stylesheet" href="<?php echo asset('css/styles.css'); ?>">
 </head>
 <body>
-    <div class="register-container">
-        <div class="register-left">
-            <h2>Únete a nosotros</h2>
-            <p>Crea una cuenta para acceder a todos los cursos</p>
-            <div class="benefits">
-                <div class="benefit">
-                    <div class="benefit-icon"></div>
-                    <div>Acceso a materiales de estudio</div>
-                </div>
-                <div class="benefit">
-                    <div class="benefit-icon"></div>
-                    <div>Seguimiento de tu progreso</div>
-                </div>
-                <div class="benefit">
-                    <div class="benefit-icon"></div>
-                    <div>Aprende con la prácica</div>
-                </div>
-            </div>
-        </div>
-        <div class="register-right">
-            <div class="register-header">
+    <div class="auth-container">
+        <div class="auth-right">
+            <div class="auth-header">
                 <h1>Crear Cuenta</h1>
-                <p>Completa tus datos para registrarte en la plataforma</p>
+                <p>Regístrate en la plataforma</p>
             </div>
+            
             <?php if (isset($errorMessages['general'])): ?>
                 <div class="alert alert-danger">
                     <?php echo htmlspecialchars($errorMessages['general']); ?>
                 </div>
             <?php endif; ?>
-            <form action="172.20.10.3/CambaNet/public/?action=register" method="POST">
+            
+            <form action="<?php echo url('register'); ?>" method="POST">
                 <div class="form-group">
-                    <label for="nombre">Nombre completo</label>
+                    <label for="nombre" class="form-label">Nombre completo</label>
                     <input type="text" id="nombre" name="nombre" 
-                           placeholder="Ingresa tu nombre completo" 
+                           placeholder="Tu nombre completo" 
                            value="<?php echo isset($formData['nombre']) ? htmlspecialchars($formData['nombre']) : ''; ?>"
-                           class="<?php echo isset($errorMessages['nombre']) ? 'input-error' : ''; ?>" 
+                           class="form-control <?php echo isset($errorMessages['nombre']) ? 'error' : ''; ?>" 
                            required>
                     <?php if (isset($errorMessages['nombre'])): ?>
                         <div class="error-message"><?php echo htmlspecialchars($errorMessages['nombre']); ?></div>
                     <?php endif; ?>
                 </div>
+                
                 <div class="form-group">
-                    <label for="email">Correo electrónico</label>
+                    <label for="email" class="form-label">Correo electrónico</label>
                     <input type="email" id="email" name="email" 
-                           placeholder="Ingresa tu correo electrónico" 
+                           placeholder="correo@ejemplo.com" 
                            value="<?php echo isset($formData['email']) ? htmlspecialchars($formData['email']) : ''; ?>"
-                           class="<?php echo isset($errorMessages['email']) ? 'input-error' : ''; ?>" 
+                           class="form-control <?php echo isset($errorMessages['email']) ? 'error' : ''; ?>" 
                            required>
                     <?php if (isset($errorMessages['email'])): ?>
                         <div class="error-message"><?php echo htmlspecialchars($errorMessages['email']); ?></div>
                     <?php endif; ?>
                 </div>
+                
                 <div class="form-group">
-                    <label for="password">Contraseña</label>
+                    <label for="password" class="form-label">Contraseña</label>
                     <input type="password" id="password" name="password" 
                            placeholder="Crea una contraseña segura" 
-                           class="<?php echo isset($errorMessages['password']) ? 'input-error' : ''; ?>" 
+                           class="form-control <?php echo isset($errorMessages['password']) ? 'error' : ''; ?>" 
                            required>
                     <?php if (isset($errorMessages['password'])): ?>
                         <div class="error-message"><?php echo htmlspecialchars($errorMessages['password']); ?></div>
                     <?php endif; ?>
                 </div>
-                <div class="password-requirements">
-                    <strong>La contraseña debe contener:</strong>
-                    <ul>
-                        <li>Al menos 8 caracteres</li>
-                        <li>Recomendado: letras mayúsculas, minúsculas y números</li>
-                    </ul>
+
+                <div style="background: var(--gray-light); padding: 15px; border-radius: var(--border-radius); margin: 20px 0;">
+                    <p style="font-size: 12px; color: var(--text-light); margin: 0;">
+                        <strong>Requisitos de contraseña:</strong> Mínimo 8 caracteres, con letras mayúsculas, minúsculas y números.
+                    </p>
                 </div>
-                <button type="submit" class="btn-register">Registrarse</button>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    Registrarse
+                </button>
             </form>
-            <div class="divider"></div>
-            <div class="register-links">
-                <p>¿Ya tienes una cuenta? <a href="172.20.10.3/CambaNet/public/?action=login">Inicia sesión aquí</a></p>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                <div style="text-align: center;">
+                    <a href="<?php echo url('login'); ?>" style="display: block; margin: 10px 0; color: var(--text-light); text-decoration: none;">
+                        ¿Ya tienes cuenta? Inicia sesión
+                    </a>
+                </div>
             </div>
         </div>
     </div>

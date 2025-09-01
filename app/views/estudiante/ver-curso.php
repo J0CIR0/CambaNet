@@ -1,99 +1,85 @@
 <?php
-$this->checkEstudianteAuth();
+$curso = $data['curso'] ?? [];
+$material = $data['material'] ?? [];
+$profesor = $data['profesor'] ?? [];
+$user_nombre = $data['user_nombre'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($curso['nombre']); ?> - Panel de Estudiante</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title><?php echo htmlspecialchars($curso['nombre']); ?> - <?php echo SITE_NAME; ?></title>
+    <link rel="stylesheet" href="<?php echo asset('css/styles.css'); ?>">
 </head>
 <body>
-    <div class="sidebar">
-        <div class="text-center py-4">
-            <h4>Panel del Estudiante</h4>
-            <p class="text-muted small"><?php echo $user_nombre; ?></p>
-        </div>
-        <nav class="nav flex-column">
-            <a class="nav-link" href="172.20.10.3/CambaNet/public/?action=estudiante/dashboard">
-                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-            </a>
-            <a class="nav-link active" href="#">
-                <i class="fas fa-book me-2"></i><?php echo htmlspecialchars(substr($curso['nombre'], 0, 15)) . '...'; ?>
-            </a>
-            <a class="nav-link" href="172.20.10.3/CambaNet/public/?action=logout">
-                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-            </a>
-        </nav>
-    </div>
-    <div class="main-content">
-        <div class="container-fluid">
-            <div class="course-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1><i class="fas fa-book me-2"></i><?php echo htmlspecialchars($curso['nombre']); ?></h1>
-                        <p class="mb-0">Impartido por: <strong><?php echo htmlspecialchars($profesor['nombre']); ?></strong></p>
-                    </div>
-                    <a href="172.20.10.3/CambaNet/public/?action=estudiante/dashboard" class="btn btn-light">
-                        <i class="fas fa-arrow-left me-1"></i> Volver al Dashboard
-                    </a>
-                </div>
+    <div class="admin-container">
+        <div class="admin-sidebar">
+            <div class="admin-brand">
+                <h2>Panel Estudiante</h2>
             </div>
+            <ul class="admin-menu">
+                <li><a href="<?php echo url('estudiante/dashboard'); ?>">Dashboard</a></li>
+                <li><a href="<?php echo url('estudiante/mis-cursos'); ?>">Mis Cursos</a></li>
+                <li><a href="<?php echo url('profile'); ?>">Mi Perfil</a></li>
+                <li><a href="<?php echo url('logout'); ?>">Cerrar Sesión</a></li>
+            </ul>
+        </div>
+
+        <div class="admin-main">
+            <div class="admin-header">
+                <h1><?php echo htmlspecialchars($curso['nombre']); ?></h1>
+                <a href="<?php echo url('estudiante/mis-cursos'); ?>" class="btn btn-secondary">Volver a Mis Cursos</a>
+            </div>
+
             <?php if (isset($_SESSION['success'])): ?>
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <div class="alert alert-success">
                     <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <?php endif; ?>
+
             <?php if (isset($_SESSION['error'])): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <div class="alert alert-danger">
                     <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <?php endif; ?>
-            <div class="row mb-4">
-                <div class="col-md-8">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5><i class="fas fa-info-circle me-2"></i>Descripción del Curso</h5>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Información del Curso</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <div>
+                            <h4 style="margin-bottom: 15px;">Descripción</h4>
+                            <p style="color: var(--text-color); line-height: 1.6;">
+                                <?php echo nl2br(htmlspecialchars($curso['descripcion'])); ?>
+                            </p>
                         </div>
-                        <div class="card-body">
-                            <p><?php echo nl2br(htmlspecialchars($curso['descripcion'])); ?></p>
-                            <div class="row mt-3">
-                                <div class="col-md-6">
-                                    <p><strong><i class="fas fa-user-tie me-2"></i>Profesor:</strong> <?php echo htmlspecialchars($profesor['nombre']); ?></p>
-                                    <p><strong><i class="fas fa-envelope me-2"></i>Email:</strong> <?php echo htmlspecialchars($profesor['email']); ?></p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong><i class="fas fa-calendar me-2"></i>Inscrito desde:</strong> <?php echo date('d/m/Y', strtotime($curso['fecha_inscripcion'])); ?></p>
-                                    <p><strong><i class="fas fa-star me-2"></i>Estado:</strong> 
-                                        <span class="badge bg-success"><?php echo ucfirst($curso['estado']); ?></span>
+                        <div>
+                            <h4 style="margin-bottom: 15px;">Detalles</h4>
+                            <div style="display: grid; gap: 15px;">
+                                <div>
+                                    <strong>Profesor:</strong>
+                                    <p style="margin: 5px 0; color: var(--text-color);">
+                                        <?php echo htmlspecialchars($profesor['nombre']); ?>
+                                    </p>
+                                    <p style="margin: 0; color: var(--text-light); font-size: 14px;">
+                                        Email: <?php echo htmlspecialchars($profesor['email']); ?>
                                     </p>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5><i class="fas fa-chart-bar me-2"></i>Estadísticas</h5>
-                        </div>
-                        <div class="card-body text-center">
-                            <div class="row">
-                                <div class="col-6">
-                                    <div class="stat">
-                                        <h3><?php echo count($material); ?></h3>
-                                        <p class="text-muted">Materiales</p>
-                                    </div>
+                                <div>
+                                    <strong>Estado de Inscripción:</strong>
+                                    <p style="margin: 5px 0;">
+                                        <span class="badge <?php echo $curso['estado'] == 'activo' ? 'badge-active' : 'badge-inactive'; ?>">
+                                            <?php echo ucfirst($curso['estado']); ?>
+                                        </span>
+                                    </p>
                                 </div>
-                                <div class="col-6">
-                                    <div class="stat">
-                                        <h3>0</h3>
-                                        <p class="text-muted">Progreso</p>
-                                    </div>
+                                <div>
+                                    <strong>Fecha de Inscripción:</strong>
+                                    <p style="margin: 5px 0; color: var(--text-color);">
+                                        <?php echo date('d/m/Y', strtotime($curso['fecha_inscripcion'])); ?>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -102,52 +88,32 @@ $this->checkEstudianteAuth();
             </div>
             <div class="card">
                 <div class="card-header">
-                    <h5><i class="fas fa-file-alt me-2"></i>Material de Estudio</h5>
+                    <h3>Material de Estudio</h3>
                 </div>
                 <div class="card-body">
                     <?php if (empty($material)): ?>
-                        <div class="text-center py-4">
-                            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
-                            <h5>No hay material disponible</h5>
-                            <p class="text-muted">El profesor aún no ha subido material para este curso.</p>
+                        <div style="text-align: center; padding: 40px;">
+                            <p>No hay material disponible para este curso</p>
+                            <p style="color: var(--text-light);">El profesor aún no ha subido material.</p>
                         </div>
                     <?php else: ?>
-                        <div class="row">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
                             <?php foreach ($material as $item): ?>
-                            <div class="col-md-4 mb-3">
-                                <div class="card file-card h-100">
-                                    <div class="card-body text-center">
-                                        <?php 
-                                        $icono = 'file';
-                                        $color = 'text-primary';
-                                        switch($item['tipo_archivo']) {
-                                            case 'pdf': $icono = 'file-pdf'; $color = 'text-danger'; break;
-                                            case 'doc': $icono = 'file-word'; $color = 'text-primary'; break;
-                                            case 'ppt': $icono = 'file-powerpoint'; $color = 'text-warning'; break;
-                                            case 'image': $icono = 'file-image'; $color = 'text-success'; break;
-                                            case 'video': $icono = 'file-video'; $color = 'text-info'; break;
-                                        }
-                                        ?>
-                                        <i class="fas fa-<?php echo $icono; ?> file-icon <?php echo $color; ?> mb-3"></i>
-                                        <h6 class="card-title"><?php echo htmlspecialchars($item['titulo']); ?></h6>
-                                        <p class="card-text small text-muted">
-                                            <?php echo htmlspecialchars(substr($item['descripcion'], 0, 80)); ?>...
-                                        </p>
-                                        <p class="small mb-1">
-                                            <strong>Tipo:</strong> <?php echo strtoupper($item['tipo_archivo']); ?>
-                                        </p>
-                                        <p class="small mb-2">
-                                            <strong>Subido:</strong> <?php echo date('d/m/Y', strtotime($item['fecha_creacion'])); ?>
-                                        </p>
-                                    </div>
-                                    <div class="card-footer">
-                                        <div class="d-grid">
-                                            <a href="/CambaNet/uploads/material/<?php echo basename($item['archivo_ruta']); ?>" 
-                                               class="btn btn-sm btn-primary" download>
-                                                <i class="fas fa-download me-1"></i> Descargar
-                                            </a>
-                                        </div>
-                                    </div>
+                            <div style="border: 1px solid var(--border-color); padding: 20px; border-radius: var(--border-radius);">
+                                <h5 style="margin-bottom: 10px; color: var(--text-color);">
+                                    <?php echo htmlspecialchars($item['titulo']); ?>
+                                </h5>
+                                <p style="color: var(--text-light); margin-bottom: 15px; font-size: 14px;">
+                                    <?php echo htmlspecialchars(substr($item['descripcion'] ?? 'Sin descripción', 0, 80)); ?>...
+                                </p>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 12px; color: var(--text-light);">
+                                        <?php echo date('d/m/Y', strtotime($item['fecha_creacion'])); ?>
+                                    </span>
+                                    <a href="/CambaNet/uploads/material/<?php echo basename($item['archivo_ruta']); ?>" 
+                                       class="btn btn-primary btn-sm" download>
+                                        Descargar
+                                    </a>
                                 </div>
                             </div>
                             <?php endforeach; ?>
@@ -155,29 +121,43 @@ $this->checkEstudianteAuth();
                     <?php endif; ?>
                 </div>
             </div>
-            <div class="row mt-4">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5><i class="fas fa-tasks me-2"></i>Próximas Actividades</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="text-center py-3">
-                                <i class="fas fa-calendar-plus fa-2x text-muted mb-3"></i>
-                                <p class="text-muted">No hay actividades programadas</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Estadísticas del Curso</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold; color: var(--primary-color);">
+                                    <?php echo count($material); ?>
+                                </div>
+                                <div style="color: var(--text-light);">Materiales</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold; color: var(--primary-color);">
+                                    0
+                                </div>
+                                <div style="color: var(--text-light);">Progreso</div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5><i class="fas fa-chart-line me-2"></i>Tu Progreso</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="text-center py-3">
-                                <i class="fas fa-spinner fa-2x text-muted mb-3"></i>
-                                <p class="text-muted">Sistema de progreso en desarrollo</p>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Tu Progreso</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="text-align: center;">
+                            <div style="font-size: 32px; font-weight: bold; color: var(--primary-color); margin-bottom: 10px;">
+                                0%
+                            </div>
+                            <div style="color: var(--text-light); margin-bottom: 15px;">
+                                Contenido completado
+                            </div>
+                            <div style="background: var(--gray-light); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="width: 0%; height: 100%; background: var(--primary-color);"></div>
                             </div>
                         </div>
                     </div>
@@ -185,6 +165,5 @@ $this->checkEstudianteAuth();
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

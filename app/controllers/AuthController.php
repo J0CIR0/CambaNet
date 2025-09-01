@@ -1,9 +1,10 @@
 <?php
+require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/UsuarioModel.php';
 require_once __DIR__ . '/../services/EmailService.php';
 require_once __DIR__ . '/../utils/Validator.php';
 require_once __DIR__ . '/../models/SessionModel.php';
-class AuthController {
+class AuthController extends BaseController {
     public function showLoginForm($errors = [], $data = []) {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -14,7 +15,7 @@ class AuthController {
         }
         $errorMessages = $errors;
         $formData = $data;
-        require __DIR__ . '/../views/auth/login.php';
+        $this->renderView('auth/login.php', compact('errorMessages', 'formData'));
     }
     public function login($data) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -63,12 +64,16 @@ class AuthController {
                 return;
             }
         }
+        $this->completeLogin($user);
+    }
+    private function completeLogin($user) {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
         $session_id = session_id();
         $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
         $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+        $sessionModel = new SessionModel();
         if ($sessionModel->registrarSesion($user['id'], $session_id, $ip_address, $user_agent)) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_role'] = $user['rol_id'];
@@ -78,7 +83,7 @@ class AuthController {
             $this->redirectToDashboard($user['rol_id']);
         } else {
             $errors['general'] = 'Error al iniciar sesión';
-            $this->showLoginForm($errors, $data);
+            $this->showLoginForm($errors, $_POST);
         }
     }
     private function validateLogin($data) {
@@ -101,7 +106,7 @@ class AuthController {
             $this->redirectToDashboard($_SESSION['user_role']);
             return;
         }
-        require __DIR__ . '/../views/auth/register.php';
+        $this->renderView('auth/register.php');
     }
     public function register($data) {
         try {
@@ -122,12 +127,12 @@ class AuthController {
                 if ($emailSent) {
                     echo "<script>
                             alert('Registro exitoso, verifica tu cuenta');
-                            window.location.href = '/CambaNet/public/?action=login';
+                            window.location.href = '" . url('login') . "';
                         </script>";
                 } else {
                     echo "<script>
                             alert('Registro exitoso, pero no se pudo enviar el correo, revisa tu conexion');
-                            window.location.href = '/CambaNet/public/?action=login';
+                            window.location.href = '" . url('login') . "';
                         </script>";
                 }
                 exit();
@@ -170,61 +175,52 @@ class AuthController {
             session_start();
         }
         if (!isset($_SESSION['2fa_user_id'])) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Sesión no válida']);
-            exit();
+            $this->jsonResponse(['success' => false, 'message' => 'Sesión no válida']);
         }
         $user_id = $_SESSION['2fa_user_id'];
         $usuarioModel = new UsuarioModel();
         $user = $usuarioModel->getUserById($user_id);
         if (!$user) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Usuario no encontrado']);
-            exit();
+            $this->jsonResponse(['success' => false, 'message' => 'Usuario no encontrado']);
         }
         $codigo = $usuarioModel->generarCodigo2FA($user_id);
         if ($codigo) {
             $emailService = new EmailService();
             $emailSent = $emailService->send2FACode($user['email'], $user['nombre'], $codigo);
-            header('Content-Type: application/json');
             if ($emailSent) {
-                echo json_encode(['success' => true, 'message' => 'Código reenviado']);
+                $this->jsonResponse(['success' => true, 'message' => 'Código reenviado']);
             } else {
-                echo json_encode(['success' => false, 'message' => 'Error al enviar email']);
+                $this->jsonResponse(['success' => false, 'message' => 'Error al enviar email']);
             }
         } else {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Error al generar código']);
+            $this->jsonResponse(['success' => false, 'message' => 'Error al generar código']);
         }
-        exit();
     }
     private function showRegisterFormWithErrors($errors, $data = []) {
         $errorMessages = $errors;
         $formData = $data;
-        require __DIR__ . '/../views/auth/register.php';
+        $this->renderView('auth/register.php', compact('errorMessages', 'formData'));
     }
     public function verifyEmail($token) {
         error_log("Intentando verificar token: " . $token);
-        
         if (empty($token)) {
             echo "<script>
                     alert('Token de verificación no proporcionado');
-                    window.location.href = '/CambaNet/public/?action=login';
+                    window.location.href = '" . url('login') . "';
                 </script>";
             exit();
         }
         $usuarioModel = new UsuarioModel();
         $verified = $usuarioModel->verifyUser($token);
-        
         if ($verified) {
             echo "<script>
-                    alert('cuenta verificas¿da, puedes iniciar sesion');
-                    window.location.href = '/CambaNet/public/?action=login';
+                    alert('cuenta verificada, puedes iniciar sesion');
+                    window.location.href = '" . url('login') . "';
                 </script>";
         } else {
             echo "<script>
                     alert('el enlace ya expiró');
-                    window.location.href = '/CambaNet/public/?action=login';
+                    window.location.href = '" . url('login') . "';
                 </script>";
         }
         exit();
@@ -239,8 +235,7 @@ class AuthController {
         }
         session_unset();
         session_destroy();
-        header("Location: 172.20.10.3/CambaNet/public/?action=login");
-        exit();
+        redirect('login');
     }
     private function redirectToDashboard($rol_id) {
         $rolePath = [
@@ -249,25 +244,24 @@ class AuthController {
             3 => 'estudiante/dashboard'
         ];
         if (isset($rolePath[$rol_id])) {
-            header("Location: 172.20.10.3/CambaNet/public/?action=" . $rolePath[$rol_id]);
-            exit();
+            redirect($rolePath[$rol_id]);
         } else {
             die("Error: Rol no válido");
         }
     }
     public function showForgotPasswordForm() {
-        require __DIR__ . '/../views/auth/forgot-password.php';
+        $this->renderView('auth/forgot-password.php');
     }
     public function showResetPasswordForm($token) {
         $usuarioModel = new UsuarioModel();
         $user_id = $usuarioModel->validateResetToken($token);
         if ($user_id) {
             $data['token'] = $token;
-            require __DIR__ . '/../views/auth/reset-password.php';
+            $this->renderView('auth/reset-password.php', $data);
         } else {
             echo "<script>
                     alert('enlace expirado');
-                    window.location.href = '/CambaNet/public/?action=login';
+                    window.location.href = '" . url('login') . "';
                 </script>";
         }
     }
@@ -287,22 +281,22 @@ class AuthController {
             if ($emailSent) {
                 echo "<script>
                         alert('se envió un enlace de recuperacion');
-                        window.location.href = '/CambaNet/public/?action=login';
+                        window.location.href = '" . url('login') . "';
                     </script>";
             } else {
                 echo "<script>
                         alert('error al enviar enlace, intena mas tarde');
-                        window.location.href = '/CambaNet/public/?action=forgot-password';
+                        window.location.href = '" . url('forgot-password') . "';
                     </script>";
             }
         } else {
             echo "<script>
                     alert('si tienes cuenta, te llegara el codigo al correo');
-                    window.location.href = '/CambaNet/public/?action=login';
+                    window.location.href = '" . url('login') . "';
                 </script>";
-            }
-        exit();
         }
+        exit();
+    }
     public function processResetPassword($data) {
         if (empty($data['token']) || empty($data['password']) || empty($data['confirm_password'])) {
             die("Todos los campos son requeridos");
@@ -315,7 +309,7 @@ class AuthController {
         if ($passwordValidation !== true) {
             echo "<script>
                     alert('" . addslashes($passwordValidation) . "');
-                    window.location.href = '/CambaNet/public/?action=reset-password&token=" . $data['token'] . "';
+                    window.location.href = '" . url('reset-password') . "&token=" . $data['token'] . "';
                 </script>";
             exit();
         }
@@ -327,19 +321,19 @@ class AuthController {
                 if ($success) {
                     echo "<script>
                             alert('contraseña actualizada, ya puede iniciar sesion');
-                            window.location.href = '/CambaNet/public/?action=login';
+                            window.location.href = '" . url('login') . "';
                         </script>";
                 }
             } catch (Exception $e) {
                 echo "<script>
                         alert('" . addslashes($e->getMessage()) . "');
-                        window.location.href = '/CambaNet/public/?action=reset-password&token=" . $data['token'] . "';
+                        window.location.href = '" . url('reset-password') . "&token=" . $data['token'] . "';
                     </script>";
             }
         } else {
             echo "<script>
                     alert('enlace ex´pirado');
-                    window.location.href = '/CambaNet/public/?action=forgot-password';
+                    window.location.href = '" . url('forgot-password') . "';
                 </script>";
         }
         exit();
@@ -350,30 +344,20 @@ class AuthController {
         }
         $errors = $this->validateLogin($data);
         if (!empty($errors)) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'errors' => $errors]);
-            exit();
+            $this->jsonResponse(['success' => false, 'errors' => $errors]);
         }
         $usuarioModel = new UsuarioModel();
         $user = $usuarioModel->getUserByEmail($data['email']);
         if (!$user) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'errors' => ['general' => 'Correo no encontrado']]);
-            exit();
+            $this->jsonResponse(['success' => false, 'errors' => ['general' => 'Correo no encontrado']]);
         }
         if (!password_verify($data['password'], $user['password'])) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'errors' => ['general' => 'Contraseña incorrecta']]);
-            exit();
+            $this->jsonResponse(['success' => false, 'errors' => ['general' => 'Contraseña incorrecta']]);
         }
         if (!$user['verificado']) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'errors' => ['general' => 'verifica tu correo antes de iniciar sesion']]);
-            exit();
+            $this->jsonResponse(['success' => false, 'errors' => ['general' => 'verifica tu correo antes de iniciar sesion']]);
         }
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true, 'user_id' => $user['id']]);
-        exit();
+        $this->jsonResponse(['success' => true, 'user_id' => $user['id']]);
     }
     public function show2FAForm($user_id, $errors = []) {
         if (session_status() === PHP_SESSION_NONE) {
@@ -381,7 +365,7 @@ class AuthController {
         }
         $_SESSION['2fa_user_id'] = $user_id;
         $errorMessages = $errors;
-        require __DIR__ . '/../views/auth/2fa-verification.php';
+        $this->renderView('auth/2fa-verification.php', compact('errorMessages'));
         exit();
     }
     public function verify2FA($data) {
@@ -427,7 +411,7 @@ class AuthController {
                 unset($_SESSION['2fa_user_id']);
                 echo "<script>
                         console.log('Bienvenido a CambaNet');
-                        console.log('suario: " . addslashes($user['nombre']) . "');
+                        console.log('Usuario: " . addslashes($user['nombre']) . "');
                         console.log('Email: " . addslashes($user['email']) . "');
                         console.log('Rol: " . ($user['rol_id'] == 1 ? 'Administrador' : ($user['rol_id'] == 2 ? 'Profesor' : 'Estudiante')) . "');
                         console.log('Hora de acceso: " . date('Y-m-d H:i:s') . "');

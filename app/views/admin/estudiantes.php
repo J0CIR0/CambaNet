@@ -1,14 +1,13 @@
 <?php
-$this->checkAdminAuth();
-$usuarioModel = new UsuarioModel();
-$estudiantes = $usuarioModel->getUsersByRole(3);
+$estudiantes = $estudiantes ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Estudiantes - Plataforma Educativa</title>
+    <title>Estudiantes - <?php echo SITE_NAME; ?></title>
+    <link rel="stylesheet" href="<?php echo asset('css/styles.css'); ?>">
 </head>
 <body>
     <div class="admin-container">
@@ -17,38 +16,49 @@ $estudiantes = $usuarioModel->getUsersByRole(3);
                 <h2>Panel de Administración</h2>
             </div>
             <ul class="admin-menu">
-                <li><a href="172.20.10.3/CambaNet/public/?action=admin/dashboard">Dashboard</a></li>
-                <li><a href="172.20.10.3/CambaNet/public/?action=admin/usuarios">Usuarios</a></li>
-                <li><a href="172.20.10.3/CambaNet/public/?action=admin/profesores">Profesores</a></li>
-                <li><a href="172.20.10.3/CambaNet/public/?action=admin/estudiantes" class="active">Estudiantes</a></li>
-                <li><a href="172.20.10.3/CambaNet/public/?action=admin/cursos">Cursos</a></li>
-                <li><a href="172.20.10.3/CambaNet/public/?action=profile" class="profile-link">Mi Perfil</a></li>
+                <li><a href="<?php echo url('admin/dashboard'); ?>">Dashboard</a></li>
+                <li><a href="<?php echo url('admin/usuarios'); ?>">Usuarios</a></li>
+                <li><a href="<?php echo url('admin/profesores'); ?>">Profesores</a></li>
+                <li><a href="<?php echo url('admin/estudiantes'); ?>" class="active">Estudiantes</a></li>
+                <li><a href="<?php echo url('admin/cursos'); ?>">Cursos</a></li>
+                <li><a href="<?php echo url('admin/inscripciones'); ?>">Inscripciones</a></li>
+                <li><a href="<?php echo url('profile'); ?>">Mi Perfil</a></li>
             </ul>
             <div class="logout-section">
-                <span style="color: #ecf0f1; padding: 12px 15px; display: block;"><?php echo $_SESSION['user_nombre']; ?></span>
-                <a href="172.20.10.3/CambaNet/public/?action=logout" class="logout-link">Cerrar Sesión</a>
+                <a href="<?php echo url('logout'); ?>" class="logout-link">Cerrar Sesión</a>
             </div>
         </div>
+
         <div class="admin-main">
             <div class="admin-header">
                 <h1>Gestión de Estudiantes</h1>
-                <div class="header-actions">
-                    <span class="user-welcome">Bienvenido, <?php echo $_SESSION['user_nombre']; ?></span>
-                    <button class="btn-primary" onclick="openModal()">Nuevo Estudiante</button>
-                </div>
+                <div class="user-welcome">Bienvenido, <?php echo htmlspecialchars($_SESSION['user_nombre']); ?></div>
             </div>
+
+            <?php if (isset($_SESSION['success'])): ?>
+                <div class="alert alert-success">
+                    <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['error'])): ?>
+                <div class="alert alert-danger">
+                    <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+                </div>
+            <?php endif; ?>
+
             <div class="card">
-                <div class="card-header">Lista de Estudiantes Registrados</div>
+                <div class="card-header">
+                    <h3>Lista de Estudiantes</h3>
+                </div>
                 <div class="card-body">
                     <?php if (empty($estudiantes)): ?>
-                        <div class="empty-state">
-                            <h5>No hay estudiantes registrados</h5>
-                            <p>Comienza agregando el primer estudiante al sistema.</p>
-                            <button class="btn-primary" onclick="openModal()">Agregar Primer Estudiante</button>
+                        <div style="text-align: center; padding: 40px;">
+                            <p>No hay estudiantes registrados</p>
                         </div>
                     <?php else: ?>
-                        <div class="table-container">
-                            <table>
+                        <div style="overflow-x: auto;">
+                            <table class="table">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
@@ -70,8 +80,8 @@ $estudiantes = $usuarioModel->getUsersByRole(3);
                                             </span>
                                         </td>
                                         <td>
-                                            <button class="btn-action" onclick="editarUsuario(<?php echo $estudiante['id']; ?>)">Editar</button>
-                                            <button class="btn-action" onclick="eliminarUsuario(<?php echo $estudiante['id']; ?>)">Eliminar</button>
+                                            <button onclick="editarUsuario(<?php echo $estudiante['id']; ?>)" class="btn btn-sm">Editar</button>
+                                            <button onclick="eliminarUsuario(<?php echo $estudiante['id']; ?>)" class="btn btn-sm btn-danger">Eliminar</button>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -83,60 +93,17 @@ $estudiantes = $usuarioModel->getUsersByRole(3);
             </div>
         </div>
     </div>
-    <div id="crearUsuarioModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Crear Nuevo Estudiante</h3>
-                <button class="modal-close" onclick="closeModal()">×</button>
-            </div>
-            <form action="172.20.10.3/CambaNet/public/?action=admin/crear-usuario" method="POST">
-                <div class="modal-body">
-                    <input type="hidden" name="rol_id" value="3">
-                    <div class="form-group">
-                        <label class="form-label">Nombre completo *</label>
-                        <input type="text" class="form-control" name="nombre" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Email *</label>
-                        <input type="email" class="form-control" name="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Contraseña (dejar vacío para generar automática)</label>
-                        <input type="password" class="form-control" name="password" minlength="6">
-                    </div>
-                    <div class="form-check">
-                        <input type="checkbox" name="verificado" id="verificado" checked>
-                        <label for="verificado">Usuario verificado</label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
-                    <button type="submit" class="btn-primary">Crear Estudiante</button>
-                </div>
-            </form>
-        </div>
-    </div>
+
     <script>
-        function openModal() {
-            document.getElementById('crearUsuarioModal').style.display = 'block';
+    function editarUsuario(id) {
+        window.location.href = '<?php echo url('admin/editar-usuario'); ?>&id=' + id;
+    }
+
+    function eliminarUsuario(id) {
+        if (confirm('¿Estás seguro de que deseas eliminar este estudiante?')) {
+            window.location.href = '<?php echo url('admin/eliminar-usuario'); ?>&id=' + id;
         }
-        function closeModal() {
-            document.getElementById('crearUsuarioModal').style.display = 'none';
-        }
-        function editarUsuario(id) {
-            window.location.href = '172.20.10.3/CambaNet/public/?action=admin/editar-usuario&id=' + id;
-        }
-        function eliminarUsuario(id) {
-            if (confirm('¿Estás seguro de que deseas eliminar este estudiante?')) {
-                window.location.href = '172.20.10.3/CambaNet/public/?action=admin/eliminar-usuario&id=' + id;
-            }
-        }
-        window.onclick = function(event) {
-            const modal = document.getElementById('crearUsuarioModal');
-            if (event.target == modal) {
-                closeModal();
-            }
-        }
+    }
     </script>
 </body>
 </html>

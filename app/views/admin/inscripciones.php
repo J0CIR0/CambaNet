@@ -1,82 +1,65 @@
 <?php
-$this->checkAdminAuth();
+$inscripciones = $inscripciones ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Inscripciones</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>Inscripciones - <?php echo SITE_NAME; ?></title>
+    <link rel="stylesheet" href="<?php echo asset('css/styles.css'); ?>">
 </head>
 <body>
-    <div class="sidebar">
-        <div class="text-center py-4">
-            <h4>Sistema de Gestión</h4>
-            <p class="text-muted small">Panel de Administración</p>
-        </div>
-        <nav class="nav flex-column">
-            <a class="nav-link" href="172.20.10.3/CambaNet/public/?action=admin/dashboard">
-                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-            </a>
-            <a class="nav-link" href="172.20.10.3/CambaNet/public/?action=admin/usuarios">
-                <i class="fas fa-users me-2"></i>Usuarios
-            </a>
-            <a class="nav-link" href="172.20.10.3/CambaNet/public/?action=admin/profesores">
-                <i class="fas fa-chalkboard-teacher me-2"></i>Profesores
-            </a>
-            <a class="nav-link" href="172.20.10.3/CambaNet/public/?action=admin/estudiantes">
-                <i class="fas fa-graduation-cap me-2"></i>Estudiantes
-            </a>
-            <a class="nav-link" href="172.20.10.3/CambaNet/public/?action=admin/cursos">
-                <i class="fas fa-book me-2"></i>Cursos
-            </a>
-            <a class="nav-link active" href="172.20.10.3/CambaNet/public/?action=admin/inscripciones">
-                <i class="fas fa-clipboard-list me-2"></i>Inscripciones
-            </a>
-            <a class="nav-link" href="172.20.10.3/CambaNet/public/?action=logout">
-                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
-            </a>
-        </nav>
-    </div>
-    <div class="main-content">
-        <div class="container-fluid">
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h2><i class="fas fa-clipboard-list me-2"></i>Gestión de Inscripciones</h2>
-                        <span class="text-muted">Bienvenido, <?php echo $_SESSION['user_nombre']; ?></span>
-                    </div>
-                </div>
+    <div class="admin-container">
+        <div class="admin-sidebar">
+            <div class="admin-brand">
+                <h2>Panel de Administración</h2>
             </div>
+            <ul class="admin-menu">
+                <li><a href="<?php echo url('admin/dashboard'); ?>">Dashboard</a></li>
+                <li><a href="<?php echo url('admin/usuarios'); ?>">Usuarios</a></li>
+                <li><a href="<?php echo url('admin/profesores'); ?>">Profesores</a></li>
+                <li><a href="<?php echo url('admin/estudiantes'); ?>">Estudiantes</a></li>
+                <li><a href="<?php echo url('admin/cursos'); ?>">Cursos</a></li>
+                <li><a href="<?php echo url('admin/inscripciones'); ?>" class="active">Inscripciones</a></li>
+                <li><a href="<?php echo url('profile'); ?>">Mi Perfil</a></li>
+            </ul>
+            <div class="logout-section">
+                <a href="<?php echo url('logout'); ?>" class="logout-link">Cerrar Sesión</a>
+            </div>
+        </div>
+
+        <div class="admin-main">
+            <div class="admin-header">
+                <h1>Gestión de Inscripciones</h1>
+                <div class="user-welcome">Bienvenido, <?php echo htmlspecialchars($_SESSION['user_nombre']); ?></div>
+            </div>
+
             <?php if (isset($_SESSION['success'])): ?>
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <div class="alert alert-success">
                     <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <?php endif; ?>
+
             <?php if (isset($_SESSION['error'])): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <div class="alert alert-danger">
                     <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             <?php endif; ?>
+
             <div class="card">
                 <div class="card-header">
-                    <h5>Todas las Inscripciones del Sistema</h5>
+                    <h3>Todas las Inscripciones</h3>
                 </div>
                 <div class="card-body">
                     <?php if (empty($inscripciones)): ?>
-                        <div class="text-center py-4">
-                            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
-                            <h5>No hay inscripciones registradas</h5>
-                            <p class="text-muted">Los estudiantes se pueden inscribir a los cursos disponibles.</p>
+                        <div style="text-align: center; padding: 40px;">
+                            <p>No hay inscripciones registradas</p>
                         </div>
                     <?php else: ?>
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead class="table-dark">
+                        <div style="overflow-x: auto;">
+                            <table class="table">
+                                <thead>
                                     <tr>
                                         <th>ID</th>
                                         <th>Estudiante</th>
@@ -98,15 +81,12 @@ $this->checkAdminAuth();
                                         <td><?php echo htmlspecialchars($inscripcion['profesor_nombre']); ?></td>
                                         <td><?php echo date('d/m/Y H:i', strtotime($inscripcion['fecha_inscripcion'])); ?></td>
                                         <td>
-                                            <span class="badge badge-<?php echo strtolower($inscripcion['estado']); ?>">
+                                            <span class="badge">
                                                 <?php echo ucfirst($inscripcion['estado']); ?>
                                             </span>
                                         </td>
                                         <td>
-                                            <button class="btn btn-sm btn-danger" 
-                                                    onclick="eliminarInscripcion(<?php echo $inscripcion['id']; ?>)">
-                                                <i class="fas fa-trash"></i> Eliminar
-                                            </button>
+                                            <button onclick="eliminarInscripcion(<?php echo $inscripcion['id']; ?>)" class="btn btn-sm btn-danger">Eliminar</button>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -118,13 +98,42 @@ $this->checkAdminAuth();
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        function eliminarInscripcion(id) {
-            if (confirm('¿Estás seguro de que deseas eliminar esta inscripción?\n\nEsta acción no se puede deshacer.')) {
-                window.location.href = '172.20.10.3/CambaNet/public/?action=admin/eliminar-inscripcion&id=' + id;
-            }
+    function eliminarInscripcion(id) {
+        if (confirm('¿Estás seguro de que deseas eliminar esta inscripción?\n\nEsta acción no se puede deshacer.')) {
+            window.location.href = '<?php echo url('admin/eliminar-inscripcion'); ?>&id=' + id;
         }
+    }
+    function openModal(modalId) {
+        document.getElementById(modalId).style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    window.onclick = function(event) {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            if (event.target === modal) {
+                closeModal(modal.id);
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (modal.style.display === 'block') {
+                    closeModal(modal.id);
+                }
+            });
+        }
+    });
     </script>
 </body>
 </html>
