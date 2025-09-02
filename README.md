@@ -111,9 +111,6 @@ CambaNet/
 🚀 Uso
 Sidebar: Navega entre Dashboard, Cursos, Estudiantes, Material, Calificaciones y Perfil.
 
-
-Material: Selecciona un curso, sube archivos PDF, DOC, PPT, imágenes o videos.
-
 Estudiantes: Lista completa con filtros de verificación.
 
 Calificaciones: Agrega, edita y visualiza calificaciones por curso.
