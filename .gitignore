@@ -1,0 +1,45 @@
+# Dependencias Composer
+/vendor/
+
+# Configuración local sensible
+app/config/config.local.php
+app/config/database.local.php
+.env
+.env.*
+
+# Archivos temporales y logs
+*.log
+logs/   
+tmp/
+cache/
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Configuración de IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de Composer locales
+composer.phar
+
+uploads/material/*
+!uploads/material/.gitkeep
+
+*.sql.bak
+*.bak
+*.old
+*.zip
+
+.htaccess.local
+
+sessions/
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

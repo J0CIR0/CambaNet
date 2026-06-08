@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
-// main.js
 
 document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.querySelector('.admin-sidebar');
@@ -15,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
         sidebar.classList.toggle('active');
     });
 
-    // Cerrar sidebar al hacer clic fuera en móviles
     document.addEventListener('click', (e) => {
         if (window.innerWidth <= 992) {
             if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
