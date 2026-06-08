@@ -21,47 +21,88 @@ El proyecto se desarrolla con una arquitectura organizada en **MVC** y buenas pr
 
 ## 🛠 Tecnologías Usadas
 
-- PHP 7+  
-- HTML5 & CSS3 (Flexbox, Grid, variables CSS)  
-- JavaScript (Vanilla)  
-- MySQL / MariaDB  
-- Composer (dependencias: PHPMailer)  
-- Responsive Design (mobile-first)  
+- PHP 7+
+- HTML5 & CSS3 (Flexbox, Grid, Variables CSS)
+- JavaScript (Vanilla)
+- MySQL / MariaDB
+- Composer (dependencias: PHPMailer)
+- Responsive Design (Mobile First)
 
 ---
 
 ## ⚙️ Instalación
 
-1. Clonar el repositorio:
+### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/TU_USUARIO/CambaNet.git
+git clone https://github.com/J0CIR0/CambaNet.git
 cd CambaNet
-Copiar la carpeta CambaNet dentro de xampp/htdocs/ (o el equivalente en tu servidor local).
+```
 
-Configurar la base de datos:
+### 2. Copiar el proyecto al servidor local
 
-Crear una base de datos en MySQL.
+Copiar la carpeta `CambaNet` dentro de:
 
-Ejecutar el script SQL script.sql que se encuentra en la raíz del proyecto.
+```text
+xampp/htdocs/
+```
 
-Configurar app/config/database.php con las credenciales de tu servidor MySQL.
+o el directorio equivalente de tu servidor local.
 
-Configurar otros parámetros en app/config/config.php (URL base, rutas, etc.).
+### 3. Configurar la base de datos
 
-Instalar dependencias de PHP con Composer:
+1. Crear una base de datos en MySQL o MariaDB.
+2. Ejecutar el script SQL:
 
-bash
-Copy code
+```text
+script.sql
+```
+
+ubicado en la raíz del proyecto.
+
+### 4. Configurar la conexión
+
+Editar:
+
+```text
+app/config/database.php
+```
+
+y establecer las credenciales de tu servidor MySQL.
+
+### 5. Configurar parámetros generales
+
+Editar:
+
+```text
+app/config/config.php
+```
+
+para configurar:
+
+- URL base
+- Rutas del sistema
+- Parámetros generales
+
+### 6. Instalar dependencias
+
+```bash
 composer install
-Acceder al proyecto desde tu navegador:
+```
 
-bash
-Copy code
+### 7. Ejecutar el proyecto
+
+Abrir en el navegador:
+
+```text
 http://localhost/CambaNet/public
-📂 Estructura del Proyecto
-pgsql
-Copy code
+```
+
+---
+
+## 📂 Estructura del Proyecto
+
+```text
 CambaNet/
 ├─ app/
 │  ├─ config/
@@ -108,26 +149,70 @@ CambaNet/
 ├─ composer.lock
 ├─ composer.phar
 └─ script.sql
-🚀 Uso
-Sidebar: Navega entre Dashboard, Cursos, Estudiantes, Material, Calificaciones y Perfil.
+```
 
-Estudiantes: Lista completa con filtros de verificación.
+---
 
-Calificaciones: Agrega, edita y visualiza calificaciones por curso.
+## 🚀 Uso
 
-📌 Buenas Prácticas
-Sanitiza y valida siempre los inputs de usuario.
+### Sidebar
 
-Mantén las credenciales de base de datos fuera del repositorio.
+Navega entre las distintas secciones:
 
-Realiza backups periódicos de la base de datos.
+- Dashboard
+- Cursos
+- Estudiantes
+- Material
+- Calificaciones
+- Perfil
 
-Optimiza archivos subidos para no sobrecargar el servidor.
+### Estudiantes
 
-📝 Autor
-JociroPy (Josué Claros Roca)
+- Visualización completa de estudiantes.
+- Filtros por estado de verificación.
+
+### Cursos
+
+- Gestión de cursos.
+- Consulta de estudiantes inscritos.
+- Relación con profesores asignados.
+
+### Material Didáctico
+
+- Subida de archivos.
+- Descarga de recursos.
+- Eliminación de material.
+
+### Calificaciones
+
+- Registro de notas.
+- Edición de calificaciones.
+- Consulta por curso y estudiante.
+
+---
+
+## 📌 Buenas Prácticas
+
+- Sanitiza y valida siempre los datos ingresados por los usuarios.
+- Mantén las credenciales de la base de datos fuera del repositorio.
+- Realiza copias de seguridad periódicas.
+- Optimiza los archivos subidos para evitar sobrecargar el servidor.
+- Utiliza control de versiones mediante Git.
+
+---
+
+## 📝 Autor
+
+**JociroPy (Josué Claros Roca)**
+
 Estudiante de Ingeniería de Sistemas, Bolivia.
 
-📄 Licencia
-MIT License – puedes usar, modificar y distribuir libremente, manteniendo la atribución al autor.
-=======# CambaNet
+GitHub: https://github.com/J0CIR0
+
+---
+
+## 📄 Licencia
+
+MIT License
+
+Puedes usar, modificar y distribuir libremente este proyecto, manteniendo la atribución correspondiente al autor.
