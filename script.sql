@@ -180,12 +180,6 @@ CREATE TABLE progreso_estudiante (
     FOREIGN KEY (material_id) REFERENCES material_didactico(id),
     UNIQUE KEY unique_progreso (estudiante_id, curso_id, material_id)
 );
-INSERT INTO usuarios (nombre, email, password, rol_id, verificado) 
-VALUES ('Josue Claros Roca','clarosrocajosue@gmail.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',1,1);
-INSERT INTO usuarios (nombre, email, password, rol_id, verificado) 
-VALUES ('Estudiante1','estudiante1@gmail.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',3,1);
-INSERT INTO usuarios (nombre, email, password, rol_id, verificado) 
-VALUES ('Profesor 1','profesor1@gmail.com','$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',2,1);
 INSERT INTO permisos (nombre, descripcion) VALUES
 ('crear_usuarios', 'Permite crear nuevos usuarios'),
 ('editar_usuarios', 'Permite editar usuarios existentes'),
@@ -239,4 +233,3 @@ DO
     SET utilizado = 1, expirado = 1 
     WHERE expiracion <= NOW() 
     AND utilizado = 0;
-

@@ -22,24 +22,39 @@ class EmailService {
         $mail = new PHPMailer(true);
         try {
             $mail->isSMTP();
+            $mail->SMTPDebug = 2;
+            $mail->Debugoutput = 'html';
             $mail->Host = $this->host;
             $mail->SMTPAuth = true;
             $mail->Username = $this->username;
             $mail->Password = $this->password;
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port = $this->port;
+            $mail->CharSet = 'UTF-8';
             $mail->setFrom($this->fromEmail, $this->fromName);
             $mail->addAddress($toEmail, $toName);
             $mail->isHTML(true);
             $mail->Subject = 'Verifica tu cuenta - ' . SITE_NAME;
             $verificationUrl = url('verify') . '&token=' . $token;
-            $mail->Body = $this->getVerificationEmailTemplate($toName, $verificationUrl);
-            $mail->AltBody = "Hola $toName,\n\nGracias por registrarte. Por favor verifica tu cuenta visitando este enlace: $verificationUrl\n\nEste enlace expirará en 24 horas.";
+            $mail->Body = $this->getVerificationEmailTemplate(
+                $toName,
+                $verificationUrl
+            );
+            $mail->AltBody =
+                "Hola $toName,\n\n" .
+                "Verifica tu cuenta:\n" .
+                $verificationUrl;
             $mail->send();
             return true;
         } catch (Exception $e) {
-            error_log("Error al enviar correo: " . $mail->ErrorInfo);
-            return false;
+            die(
+                '<h2>PHPMailer Error</h2>' .
+                '<pre>' .
+                $mail->ErrorInfo .
+                "\n\n" .
+                $e->getMessage() .
+                '</pre>'
+            );
         }
     }
     public function sendPasswordResetEmail($toEmail, $toName, $token) {
